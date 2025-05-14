@@ -25,7 +25,9 @@ if st.button("⚙️ تنفيذ التحليل") and uploaded_file and openai_ke
     paragraphs = extract_paragraphs(uploaded_file)
 
     # معالجة الفقرات
-    processed_results = process_paragraphs_with_gpt(paragraphs, model_choice)
+    processed_results = process_paragraphs_with_gpt(paragraphs, model_choice, api_key=openai_key)
+
+ #   processed_results = process_paragraphs_with_gpt(paragraphs, model_choice)
 
     # إنشاء ملف وورد جديد
     modified_doc = insert_titles_to_docx(paragraphs, processed_results)
