@@ -11,13 +11,12 @@ def extract_paragraphs(uploaded_file):
     return paragraphs
 
 def process_paragraphs_with_gpt(paragraphs, model="gpt-4", api_key=""):
-    """تحليل الفقرات باستخدام OpenAI وتحديد الكشافات"""
+    """تحليل الفقرات باستخدام OpenAI وتحديد الكشافات وأسباب التصنيف"""
     client = OpenAI(api_key=api_key)
     results = []
 
     for i, para in enumerate(paragraphs):
         prompt = get_prompt(para)
-
         try:
             response = client.chat.completions.create(
                 model=model,
@@ -29,30 +28,40 @@ def process_paragraphs_with_gpt(paragraphs, model="gpt-4", api_key=""):
             )
             reply = response.choices[0].message.content.strip()
 
+            # تحليل المخرجات
             title_lines = []
-reason = ""
+            reason = ""
 
-for line in reply.splitlines():
-    line = line.strip()
-    if re.match(r"<(/?\d+/.*)>", line):
-        title_lines.append(line)
-    elif line.startswith("سبب التصنيف:"):
-        reason = line.replace("سبب التصنيف:", "").strip()
+            for line in reply.splitlines():
+                line = line.strip()
+                if re.match(r"<(/?\d+/.*)>", line):
+                    title_lines.append(line)
+                elif line.startswith("سبب التصنيف:"):
+                    reason = line.replace("سبب التصنيف:", "").strip()
 
-# حفظ النتائج
-for tag in title_lines:
-    results.append({
-        "الفقرة رقم": i + 1,
-        "الكشاف": tag,
-        "النص": para,
-        "سبب التصنيف": reason
-    })
+            if title_lines:
+                for tag in title_lines:
+                    results.append({
+                        "الفقرة رقم": i + 1,
+                        "الكشاف": tag,
+                        "النص": para,
+                        "سبب التصنيف": reason
+                    })
+            else:
+                # إذا لا يوجد كشاف ولكن نريد تسجيل المكنز فقط
+                results.append({
+                    "الفقرة رقم": i + 1,
+                    "الكشاف": "",
+                    "النص": para,
+                    "سبب التصنيف": ""
+                })
 
         except Exception as e:
             results.append({
                 "الفقرة رقم": i + 1,
                 "الكشاف": "خطأ: " + str(e),
-                "النص": para
+                "النص": para,
+                "سبب التصنيف": ""
             })
 
     return results
@@ -60,7 +69,7 @@ for tag in title_lines:
 def insert_titles_to_docx(paragraphs, results):
     """إدراج عناوين الكشاف قبل الفقرات في ملف وورد جديد"""
     doc = Document()
-    result_dict = {res["النص"]: res["الكشاف"] for res in results if "الكشاف" in res and res["الكشاف"].startswith("<")}
+    result_dict = {res["النص"]: res["الكشاف"] for res in results if res["الكشاف"].startswith("<")}
 
     for para in paragraphs:
         if para in result_dict:
