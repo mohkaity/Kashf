@@ -29,14 +29,24 @@ def process_paragraphs_with_gpt(paragraphs, model="gpt-4", api_key=""):
             )
             reply = response.choices[0].message.content.strip()
 
-            match = re.match(r"<(/?\d+/.*)>", reply)
-            if match:
-                title_tag = match.group(0)
-                results.append({
-                    "الفقرة رقم": i + 1,
-                    "الكشاف": title_tag,
-                    "النص": para
-                })
+            title_lines = []
+reason = ""
+
+for line in reply.splitlines():
+    line = line.strip()
+    if re.match(r"<(/?\d+/.*)>", line):
+        title_lines.append(line)
+    elif line.startswith("سبب التصنيف:"):
+        reason = line.replace("سبب التصنيف:", "").strip()
+
+# حفظ النتائج
+for tag in title_lines:
+    results.append({
+        "الفقرة رقم": i + 1,
+        "الكشاف": tag,
+        "النص": para,
+        "سبب التصنيف": reason
+    })
 
         except Exception as e:
             results.append({
