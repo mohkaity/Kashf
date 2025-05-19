@@ -12,7 +12,7 @@ if 'processed_docx' not in st.session_state:
 if 'excel_output' not in st.session_state:
     st.session_state.excel_output = None
 
-st.title("📚 استخراج وتمييز الكشافات العلمية من كتب شيخ الإسلام ابن تيمية")
+st.title("📚 استخراج وتمييز الكشافات العلمية فقط من كتب شيخ الإسلام ابن تيمية")
 
 openai_key = st.text_input("🔐 أدخل مفتاح OpenAI الخاص بك", type="password")
 model_choice = st.selectbox("🧠 اختر نموذج OpenAI", ["gpt-4", "gpt-3.5-turbo"])
